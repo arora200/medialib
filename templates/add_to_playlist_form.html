@@ -1,0 +1,19 @@
+{% include 'header.html' %}
+<h1 class="mt-5">Add "{{ media_item.title }}" to Playlist</h1>
+
+<form action="{{ url_for('add_media_to_playlist', playlist_id=0) }}" method="post">
+    <input type="hidden" name="media_id" value="{{ media_item.id }}">
+    <div class="form-group">
+        <label for="playlist_id">Select Playlist</label>
+        <select name="playlist_id" id="playlist_id" class="form-control" required>
+            <option value="">-- Select a Playlist --</option>
+            {% for playlist in playlists %}
+                <option value="{{ playlist.id }}">{{ playlist.name }} ({{ playlist.playlist_type }})</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Add to Selected Playlist</button>
+</form>
+
+<a href="{{ url_for('media_page', media_id=media_item.id) }}" class="btn btn-secondary mt-3">Back to Media Item</a>
+{% include 'footer.html' %}

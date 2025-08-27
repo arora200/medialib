@@ -1,0 +1,24 @@
+{% include 'header.html' %}
+<h1 class="mt-5">Playlists</h1>
+<div class="mb-3">
+    <a href="{{ url_for('create_playlist') }}" class="btn btn-primary">Create New Playlist</a>
+</div>
+<div class="row">
+    {% for playlist in playlists %}
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">{{ playlist.name }}</h5>
+                <p class="card-text">{{ playlist.description }}</p>
+                <p class="card-text"><small class="text-muted">Type: {{ playlist.playlist_type }}</small></p>
+                <a href="{{ url_for('view_playlist', playlist_id=playlist.id) }}" class="btn btn-secondary">View Playlist</a>
+                <form action="{{ url_for('delete_playlist', playlist_id=playlist.id) }}" method="post" style="display: inline-block;">
+                    <input type="password" name="password" placeholder="Admin Password" required>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% include 'footer.html' %}
