@@ -9,7 +9,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename # Added import
-from models import db, User, Media, Playlist, PlaylistMedia, login_manager # Import db, models, and login_manager from models.py
+from models import db, User, Media, Playlist, PlaylistMedia, login_manager, Bookmark # Import db, models, and login_manager from models.py
+from forms import BookmarkForm
 
 # Configuration
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin")
@@ -520,6 +521,42 @@ def logout():
     logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('index'))
+
+@app.route('/bookmarks', methods=['GET', 'POST'])
+@login_required
+def bookmarks():
+    form = BookmarkForm()
+    if form.validate_on_submit():
+        new_bookmark = Bookmark(
+            title=form.title.data,
+            url=form.url.data,
+            description=form.description.data,
+            tags=form.tags.data,
+            owner=current_user
+        )
+        db.session.add(new_bookmark)
+        db.session.commit()
+        flash('Bookmark added successfully!', 'success')
+        return redirect(url_for('bookmarks'))
+
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    search_query = request.args.get('q', '')
+
+    query = Bookmark.query.filter_by(user_id=current_user.id)
+
+    if search_query:
+        search_term = f"%{search_query}%"
+        query = query.filter(
+            db.or_(
+                Bookmark.title.like(search_term),
+                Bookmark.description.like(search_term),
+                Bookmark.tags.like(search_term)
+            )
+        )
+
+    bookmarks = query.paginate(page=page, per_page=per_page, error_out=False)
+    return render_template('bookmarks.html', form=form, bookmarks=bookmarks)
 
 from api import api_bp
 app.register_blueprint(api_bp)

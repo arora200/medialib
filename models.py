@@ -12,6 +12,7 @@ class User(db.Model, UserMixin):
     password_hash = db.Column(db.String(120), nullable=False)
     media = db.relationship('Media', backref='uploader', lazy=True)
     playlists = db.relationship('Playlist', backref='owner', lazy=True)
+    bookmarks = db.relationship('Bookmark', backref='owner', lazy=True, cascade="all, delete-orphan")
 
     def __repr__(self):
         return f'<User {self.username}>'
@@ -62,6 +63,17 @@ class PlaylistMedia(db.Model):
 
     def __repr__(self):
         return f'<PlaylistMedia Playlist:{self.playlist_id} Media:{self.media_id}>'
+
+class Bookmark(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255), nullable=False)
+    url = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text)
+    tags = db.Column(db.String(255))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    def __repr__(self):
+        return f'<Bookmark {self.title}>'
 
 @login_manager.user_loader
 def load_user(user_id):

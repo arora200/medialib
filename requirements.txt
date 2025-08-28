@@ -1,6 +1,7 @@
 aiohappyeyeballs==2.6.1
 aiohttp==3.12.15
 aiosignal==1.4.0
+aniso8601==9.0.1
 annotated-types==0.7.0
 anyio==4.10.0
 attrs==25.3.0
@@ -62,7 +63,7 @@ google-cloud-speech==2.33.0
 google-cloud-texttospeech==2.27.0
 googleapis-common-protos==1.70.0
 greenlet==3.0.3
-groq==0.22.0
+groq
 grpcio==1.74.0
 grpcio-status==1.74.0
 gTTS==2.5.1
@@ -71,7 +72,7 @@ halo==0.0.31
 html5lib==1.1
 httpcore==1.0.8
 httplib2==0.22.0
-httpx==0.28.1
+httpx
 huggingface-hub==0.34.4
 icecream==2.1.7
 idna==3.7
@@ -101,7 +102,7 @@ jupyter_client==8.6.3
 jupyter_core==5.7.2
 jupyter_server==2.15.0
 jupyter_server_terminals==0.5.3
-jupyterlab==4.4.0
+jupyterlab
 jupyterlab_pygments==0.3.0
 jupyterlab_server==2.27.3
 keyring==25.6.0
@@ -242,7 +243,7 @@ sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-qthelp==2.0.0
 sphinxcontrib-serializinghtml==2.0.0
 spinners==0.0.24
-spleeter==2.1.0
+
 SQLAlchemy==2.0.32
 srsly==2.5.1
 srt==3.5.3
@@ -296,3 +297,6 @@ yaspin==3.1.0
 yfinance==0.2.41
 youtube-dl==2021.12.17
 zstandard==0.24.0
+pytest
+pytest-flask
+pytest-cov

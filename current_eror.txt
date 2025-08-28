@@ -1,0 +1,8 @@
+OperationalError
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such column: bookmark.tags
+[SQL: SELECT bookmark.id AS bookmark_id, bookmark.title AS bookmark_title, bookmark.url AS bookmark_url, bookmark.description AS bookmark_description, bookmark.tags AS bookmark_tags, bookmark.user_id AS bookmark_user_id 
+FROM bookmark 
+WHERE bookmark.user_id = ?
+ LIMIT ? OFFSET ?]
+[parameters: (1, 10, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)

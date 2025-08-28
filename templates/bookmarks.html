@@ -1,0 +1,79 @@
+{% include 'header.html' %}
+
+<div class="container">
+    <h2>Bookmarks</h2>
+
+    <div class="row">
+        <div class="col-md-4">
+            <h3>Add Bookmark</h3>
+            <form method="POST" action="{{ url_for('bookmarks') }}">
+                {{ form.hidden_tag() }}
+                <div class="form-group">
+                    {{ form.title.label(class="form-control-label") }}
+                    {{ form.title(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    {{ form.url.label(class="form-control-label") }}
+                    {{ form.url(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    {{ form.description.label(class="form-control-label") }}
+                    {{ form.description(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    {{ form.tags.label(class="form-control-label") }}
+                    {{ form.tags(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+        <div class="col-md-8">
+            <h3>My Bookmarks</h3>
+
+            <form method="GET" action="{{ url_for('bookmarks') }}">
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" name="q" placeholder="Search by title, description, or tags" value="{{ request.args.get('q', '') }}">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary" type="submit">Search</button>
+                    </div>
+                </div>
+            </form>
+
+            <ul class="list-group">
+                {% for bookmark in bookmarks.items %}
+                    <li class="list-group-item">
+                        <a href="{{ bookmark.url }}" target="_blank">{{ bookmark.title }}</a>
+                        <p>{{ bookmark.description }}</p>
+                        {% if bookmark.tags %}
+                            <p><strong>Tags:</strong> {{ bookmark.tags }}</p>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    {% if bookmarks.has_prev %}
+                        <li class="page-item"><a class="page-link" href="{{ url_for('bookmarks', page=bookmarks.prev_num, q=request.args.get('q', '')) }}">Previous</a></li>
+                    {% endif %}
+                    {% for page_num in bookmarks.iter_pages() %}
+                        {% if page_num %}
+                            <li class="page-item {% if bookmarks.page == page_num %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('bookmarks', page=page_num, q=request.args.get('q', '')) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if bookmarks.has_next %}
+                        <li class="page-item"><a class="page-link" href="{{ url_for('bookmarks', page=bookmarks.next_num, q=request.args.get('q', '')) }}">Next</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+{% include 'footer.html' %}
