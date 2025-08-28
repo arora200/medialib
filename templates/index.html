@@ -56,7 +56,7 @@
                 </div>
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title text-truncate">{{ media_item.title }}</h5>
-                    <p class="card-text text-muted flex-grow-1">{{ media_item.description | truncate(70) }}</p>
+                    <p class="card-text text-muted flex-grow-1">{{ media_item.description | default('') | truncate(70) }}</p>
                     <p class="card-text"><small class="text-muted">Tags: {{ media_item.tags | default('N/A') }}</small></p>
                     <p class="card-text"><small class="text-muted">Category: {{ media_item.category | default('N/A') }}</small></p>
                     <p class="card-text"><small class="text-muted">Subcategory: {{ media_item.subcategory | default('N/A') }}</small></p>

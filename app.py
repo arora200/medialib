@@ -44,16 +44,21 @@ os.makedirs(MEDIA_DIR, exist_ok=True)
 # --- Database Initialization ---
 def init_db():
     with app.app_context():
-        # db.create_all() # Removed as Alembic will manage the schema
-        # Create an admin user if one doesn't exist
-        if not User.query.filter_by(username=ADMIN_USERNAME).first():
-            admin_user = User(username=ADMIN_USERNAME)
-            admin_user.set_password(ADMIN_PASSWORD)
-            db.session.add(admin_user)
-            db.session.commit()
-            app.logger.info(f"Admin user '{ADMIN_USERNAME}' created.")
-        else:
-            app.logger.info(f"Admin user '{ADMIN_USERNAME}' already exists.")
+        try:
+            # Create an admin user if one doesn't exist
+            if not User.query.filter_by(username=ADMIN_USERNAME).first():
+                admin_user = User(username=ADMIN_USERNAME)
+                admin_user.set_password(ADMIN_PASSWORD)
+                db.session.add(admin_user)
+                db.session.commit()
+                app.logger.info(f"Admin user '{ADMIN_USERNAME}' created.")
+            else:
+                app.logger.info(f"Admin user '{ADMIN_USERNAME}' already exists.")
+        except Exception as e:
+            app.logger.error(f"Error during database initialization: {e}")
+            db.session.rollback() # Rollback in case of error
+        finally:
+            db.session.close() # Ensure session is closed
 
 # --- Routes (Web Interface) ---
 
