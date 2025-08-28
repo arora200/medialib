@@ -11,14 +11,13 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename # Added import
 from models import db, User, Media, Playlist, PlaylistMedia, login_manager, Bookmark # Import db, models, and login_manager from models.py
 from forms import BookmarkForm
+from utils import allowed_file, get_file_type, ALLOWED_EXTENSIONS # Import from utils.py
 
 # Configuration
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin")
-ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin@2138")
 MEDIA_DIR = os.environ.get("MEDIA_DIR", "media_library")
 DB_PATH = os.environ.get("DB_PATH", "media.db")
-ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.mp3', '.wav', '.mp4', '.mov', '.pdf', '.docx', '.txt'}
-
 app = Flask(__name__)
 app.config['MEDIA_DIR'] = MEDIA_DIR
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max upload
@@ -45,7 +44,7 @@ os.makedirs(MEDIA_DIR, exist_ok=True)
 def init_db():
     with app.app_context():
         try:
-            # Create an admin user if one doesn't exist
+            # Create an admin user if one's not exist
             if not User.query.filter_by(username=ADMIN_USERNAME).first():
                 admin_user = User(username=ADMIN_USERNAME)
                 admin_user.set_password(ADMIN_PASSWORD)
@@ -61,22 +60,6 @@ def init_db():
             db.session.close() # Ensure session is closed
 
 # --- Routes (Web Interface) ---
-
-def allowed_file(filename):
-    return '.' in filename and \
-           os.path.splitext(filename)[1].lower() in ALLOWED_EXTENSIONS
-
-def get_file_type(filename):
-    ext = os.path.splitext(filename)[1].lower()
-    if ext in ['.jpg', '.jpeg', '.png', '.gif']:
-        return 'image'
-    elif ext in ['.mp3', '.wav']:
-        return 'audio'
-    elif ext in ['.mp4', '.mov']:
-        return 'video'
-    elif ext in ['.pdf', '.docx', '.txt']:
-        return 'ebook'
-    return 'other'
 
 @app.route('/')
 def index():

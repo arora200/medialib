@@ -6,6 +6,7 @@ from functools import wraps
 from models import db, Media, Playlist, PlaylistMedia, User # Import SQLAlchemy db and models
 from werkzeug.utils import secure_filename
 import uuid
+from utils import allowed_file, get_file_type # Import from utils.py
 
 # Create a Blueprint for the API
 api_bp = Blueprint('api', __name__, url_prefix='/api')
@@ -77,6 +78,31 @@ def generic_error(error):
 # Media Namespace
 media_ns = api.namespace('media', description='Media operations')
 
+auth_ns = api.namespace('auth', description='Authentication operations')
+
+@auth_ns.route('/login')
+class UserLogin(Resource):
+    @api.expect(api.model('UserAuth', {'username': fields.String(required=True), 'password': fields.String(required=True)}))
+    def post(self):
+        data = request.json
+        username = data.get('username')
+        password = data.get('password')
+        user = User.query.filter_by(username=username).first()
+        if user and user.check_password(password):
+            from flask_login import login_user
+            login_user(user)
+            return {'message': 'Login successful'}, 200
+        return {'message': 'Invalid credentials'}, 401
+
+@auth_ns.route('/logout')
+class UserLogout(Resource):
+    @api_login_required
+    def post(self):
+        from flask_login import logout_user
+        logout_user()
+        return {'message': 'Logout successful'}, 200
+
+
 @media_ns.route('/')
 class MediaList(Resource):
     @api.doc('list_media_items')
@@ -91,7 +117,10 @@ class MediaList(Resource):
         if args['title']:
             query = query.filter(Media.title.like(f"%{args['title']}% "))
         if args['tags']:
-            query = query.filter(Media.tags.like(f"%{args['tags']}% "))
+            tag_list = [t.strip() for t in args['tags'].split(',') if t.strip()]
+            if tag_list:
+                or_conditions = [Media.tags.like(f'%{tag}%') for tag in tag_list]
+                query = query.filter(db.or_(*or_conditions))
         if args['file_type']:
             query = query.filter_by(file_type=args['file_type'])
         if args['category']:
@@ -103,14 +132,19 @@ class MediaList(Resource):
         return media_items
 
     @api.doc('upload_media')
-    @api.expect(media_model, validate=True)
     @api.marshal_with(media_model, code=201)
     @api_login_required
     def post(self):
         '''Upload a new media item'''
-        # This endpoint expects JSON metadata and a file upload via multipart/form-data
-        # For simplicity, this example assumes metadata is in JSON body and file is separate
-        # A more robust solution would handle multipart/form-data with both file and JSON
+        parser = reqparse.RequestParser()
+        parser.add_argument('title', type=str, required=True, help='Title of the media item')
+        parser.add_argument('description', type=str, help='Description of the media item')
+        parser.add_argument('tags', type=str, help='Comma-separated tags')
+        parser.add_argument('file_type', type=str, help='Type of the file (e.g., image, audio)')
+        parser.add_argument('category', type=str, help='Category of the media')
+        parser.add_argument('subcategory', type=str, help='Subcategory of the media')
+        
+        args = parser.parse_args()
 
         if 'file' not in request.files:
             api.abort(400, "No file part in the request")
@@ -118,22 +152,24 @@ class MediaList(Resource):
         if file.filename == '':
             api.abort(400, "No selected file")
 
-        if file and current_app.allowed_file(file.filename):
+        if file and allowed_file(file.filename):
             original_filename = secure_filename(file.filename)
             file_extension = os.path.splitext(original_filename)[1].lower()
             new_filename = f"{uuid.uuid4().hex}{file_extension}"
             file_path = os.path.join(current_app.config['MEDIA_DIR'], new_filename)
             file.save(file_path)
 
-            data = api.payload
+            current_app.logger.info(f"Attempting to create Media with title: {args['title']}, file_type: {args['file_type'] or get_file_type(original_filename)}, category: {args['category'] or get_file_type(original_filename)}, subcategory: {args['subcategory']}")
+            current_app.logger.info(f"MEDIA_DIR: {current_app.config['MEDIA_DIR']}")
+
             new_media = Media(
-                title=data.get('title', original_filename),
-                description=data.get('description'),
-                tags=data.get('tags'),
+                title=args['title'],
+                description=args['description'],
+                tags=args['tags'],
                 filename=new_filename,
-                file_type=current_app.get_file_type(original_filename),
-                category=data.get('category', current_app.get_file_type(original_filename)),
-                subcategory=data.get('subcategory', ''),
+                file_type=args['file_type'] or get_file_type(original_filename),
+                category=args['category'] or get_file_type(original_filename),
+                subcategory=args['subcategory'],
                 user_id=current_user.id
             )
             db.session.add(new_media)

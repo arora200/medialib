@@ -22,14 +22,26 @@ def download_media(session, search_params):
     """Search for media with given parameters and download them"""
     os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
-    search_url = f"{API_BASE_URL}/media"
+    title_search = search_params.pop('title', None)
+
+    if title_search:
+        search_url = f"{API_BASE_URL}/media/search_by_title"
+        params = {'q': title_search}
+    else:
+        search_url = f"{API_BASE_URL}/media"
+        params = search_params
+
     try:
-        response = session.get(search_url, params=search_params)
+        response = session.get(search_url, params=params)
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
         print(f"Error searching for media: {e}")
-        if response and response.status_code == 401:
+        if response is not None and response.status_code == 401:
             print("Authentication required. Please log in.")
+        elif response is not None and response.status_code == 404:
+            print("Search endpoint not found. Check API_BASE_URL.")
+        elif response is not None and response.status_code == 500:
+            print("Server error during search.")
         return
 
     media_list = response.json()
@@ -69,11 +81,17 @@ if __name__ == "__main__":
         print("Exiting due to failed login.")
     else:
         print("\n--- Search Options ---")
-        title = input("Enter title (optional): ")
-        tags = input("Enter tags (comma-separated, optional): ")
-        file_type = input("Enter file type (image, audio, video, ebook, other - optional): ")
-        category = input("Enter category (optional): ")
-        subcategory = input("Enter subcategory (optional): ")
+        title = input("Enter title (optional): ").strip()
+        tags = input("Enter tags (comma-separated, optional): ").strip()
+        
+        allowed_file_types = ['image', 'audio', 'video', 'ebook', 'other', '']
+        file_type = input(f"Enter file type ({', '.join(allowed_file_types[:-1])}, or other - optional): ").strip().lower()
+        if file_type and file_type not in allowed_file_types:
+            print(f"Invalid file type. Allowed types are: {', '.join(allowed_file_types)}.")
+            file_type = '' # Reset to empty if invalid
+
+        category = input("Enter category (optional): ").strip()
+        subcategory = input("Enter subcategory (optional): ").strip()
 
         search_params = {}
         if title: search_params['title'] = title
@@ -81,5 +99,8 @@ if __name__ == "__main__":
         if file_type: search_params['file_type'] = file_type
         if category: search_params['category'] = category
         if subcategory: search_params['subcategory'] = subcategory
+
+        if not search_params:
+            print("No search criteria entered. Searching for all media.")
 
         download_media(session, search_params)
