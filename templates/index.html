@@ -1,84 +1,126 @@
 {% include 'header.html' %}
-<h1 class="mt-5">Media Library</h1>
-<div class="mb-3">
-    <a href="/upload" class="btn btn-primary">Upload New Media</a>
-</div>
-<form action="/" method="get" class="form-inline mb-3">
-    <input type="text" name="tags" class="form-control mr-2" placeholder="Search by tags..." value="{{ request.args.get('tags', '') }}">
-    <select name="type" class="form-control mr-2">
-        <option value="" {% if not request.args.get('type') %}selected{% endif %}>All Types</option>
-        <option value="image" {% if request.args.get('type') == 'image' %}selected{% endif %}>Image</option>
-        <option value="audio" {% if request.args.get('type') == 'audio' %}selected{% endif %}>Audio</option>
-        <option value="video" {% if request.args.get('type') == 'video' %}selected{% endif %}>Video</option>
-        <option value="ebook" {% if request.args.get('type') == 'ebook' %}selected{% endif %}>Ebook</option>
-        <option value="other" {% if request.args.get('type') == 'other' %}selected{% endif %}>Other</option>
-    </select>
-    <select name="category" class="form-control mr-2">
-        <option value="" {% if not request.args.get('category') %}selected{% endif %}>All Categories</option>
-        <option value="image" {% if request.args.get('category') == 'image' %}selected{% endif %}>Image</option>
-        <option value="audio" {% if request.args.get('category') == 'audio' %}selected{% endif %}>Audio</option>
-        <option value="video" {% if request.args.get('category') == 'video' %}selected{% endif %}>Video</option>
-        <option value="ebook" {% if request.args.get('category') == 'ebook' %}selected{% endif %}>Ebook</option>
-        <option value="other" {% if request.args.get('category') == 'other' %}selected{% endif %}>Other</option>
-    </select>
-    <select name="subcategory" class="form-control mr-2">
-        <option value="" {% if not request.args.get('subcategory') %}selected{% endif %}>All Subcategories</option>
-        <option value="songs" {% if request.args.get('subcategory') == 'songs' %}selected{% endif %}>Songs</option>
-        <option value="movies" {% if request.args.get('subcategory') == 'movies' %}selected{% endif %}>Movies</option>
-        <option value="short_clip" {% if request.args.get('subcategory') == 'short_clip' %}selected{% endif %}>Short Clip</option>
-        <option value="music" {% if request.args.get('subcategory') == 'music' %}selected{% endif %}>Music</option>
-        <option value="study" {% if request.args.get('subcategory') == 'study' %}selected{% endif %}>Study</option>
-        <option value="reference" {% if request.args.get('subcategory') == 'reference' %}selected{% endif %}>Reference</option>
-        <option value="fiction" {% if request.args.get('subcategory') == 'fiction' %}selected{% endif %}>Fiction</option>
-        <option value="non_fiction" {% if request.args.get('subcategory') == 'non_fiction' %}selected{% endif %}>Non-Fiction</option>
-    </select>
-    <button type="submit" class="btn btn-primary">Search</button>
-</form>
-<div class="row">
-    {% for media_item in media_list %}
-    <div class="col-md-4">
-        <div class="card mb-4">
-            <div class="card-img-top text-center bg-light py-3">
-                {% if media_item.file_type == 'image' %}
-                <img src="/api/media/{{ media_item.id }}/download" class="img-fluid" style="max-height: 200px; object-fit: contain;" alt="{{ media_item.title }}">
-                {% elif media_item.file_type == 'audio' %}
-                <i class="fas fa-music fa-5x text-secondary"></i><br>Audio File
-                {% elif media_item.file_type == 'video' %}
-                <i class="fas fa-video fa-5x text-secondary"></i><br>Video File
-                {% else %}
-                <i class="fas fa-file fa-5x text-secondary"></i><br>Other File
-                {% endif %}
-            </div>
-            <div class="card-body">
-                <h5 class="card-title">{{ media_item.title }}</h5>
-                <p class="card-text">{{ media_item.description }}</p>
-                <p class="card-text"><small class="text-muted">{{ media_item.tags }}</small></p>
-                <p class="card-text"><small class="text-muted">Category: {{ media_item.category | default('N/A') }}</small></p>
-                <p class="card-text"><small class="text-muted">Subcategory: {{ media_item.subcategory | default('N/A') }}</small></p>
-                <a href="/media/{{ media_item.id }}" class="btn btn-secondary">View</a>
-                <a href="/media/{{ media_item.id }}/edit" class="btn btn-warning">Edit</a>
-                <form action="/media/{{ media_item.id }}/delete" method="post" style="display: inline-block;">
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </form>
+
+<div class="container text-center">
+    <h2 class="mt-4 mb-3">Media Library</h2>
+
+    <div class="mb-4">
+        <a href="/upload" class="btn btn-primary">Upload New Media</a>
+    </div>
+
+    <form action="/" method="get" class="form-inline justify-content-center mb-4">
+        <input type="text" name="tags" class="form-control mr-2 mb-2" placeholder="Search by tags..." value="{{ request.args.get('tags', '') }}">
+        <select name="type" class="form-control mr-2 mb-2">
+            <option value="" {% if not request.args.get('type') %}selected{% endif %}>All Types</option>
+            <option value="image" {% if request.args.get('type') == 'image' %}selected{% endif %}>Image</option>
+            <option value="audio" {% if request.args.get('type') == 'audio' %}selected{% endif %}>Audio</option>
+            <option value="video" {% if request.args.get('type') == 'video' %}selected{% endif %}>Video</option>
+            <option value="ebook" {% if request.args.get('type') == 'ebook' %}selected{% endif %}>Ebook</option>
+            <option value="other" {% if request.args.get('type') == 'other' %}selected{% endif %}>Other</option>
+        </select>
+        <select name="category" class="form-control mr-2 mb-2">
+            <option value="" {% if not request.args.get('category') %}selected{% endif %}>All Categories</option>
+            <option value="image" {% if request.args.get('category') == 'image' %}selected{% endif %}>Image</option>
+            <option value="audio" {% if request.args.get('category') == 'audio' %}selected{% endif %}>Audio</option>
+            <option value="video" {% if request.args.get('category') == 'video' %}selected{% endif %}>Video</option>
+            <option value="ebook" {% if request.args.get('category') == 'ebook' %}selected{% endif %}>Ebook</option>
+            <option value="other" {% if request.args.get('category') == 'other' %}selected{% endif %}>Other</option>
+        </select>
+        <select name="subcategory" class="form-control mr-2 mb-2">
+            <option value="" {% if not request.args.get('subcategory') %}selected{% endif %}>All Subcategories</option>
+            <option value="songs" {% if request.args.get('subcategory') == 'songs' %}selected{% endif %}>Songs</option>
+            <option value="movies" {% if request.args.get('subcategory') == 'movies' %}selected{% endif %}>Movies</option>
+            <option value="short_clip" {% if request.args.get('subcategory') == 'short_clip' %}selected{% endif %}>Short Clip</option>
+            <option value="music" {% if request.args.get('subcategory') == 'music' %}selected{% endif %}>Music</option>
+            <option value="study" {% if request.args.get('subcategory') == 'study' %}selected{% endif %}>Study</option>
+            <option value="reference" {% if request.args.get('subcategory') == 'reference' %}selected{% endif %}>Reference</option>
+            <option value="fiction" {% if request.args.get('subcategory') == 'fiction' %}selected{% endif %}>Fiction</option>
+            <option value="non_fiction" {% if request.args.get('subcategory') == 'non_fiction' %}selected{% endif %}>Non-Fiction</option>
+        </select>
+        <button type="submit" class="btn btn-primary mb-2">Search</button>
+    </form>
+
+    <div class="row justify-content-center">
+        {% for media_item in media_list %}
+        <div class="col-md-3 col-sm-6 mb-4">
+            <div class="card media-card h-100 shadow-sm">
+                <div class="card-img-top text-center bg-light py-3">
+                    {% if media_item.file_type == 'image' %}
+                    <img src="/api/media/{{ media_item.id }}/download" class="img-fluid" style="max-height: 150px; object-fit: contain;" alt="{{ media_item.title }}">
+                    {% elif media_item.file_type == 'audio' %}
+                    <i class="fas fa-music fa-3x text-secondary"></i><br>Audio File
+                    {% elif media_item.file_type == 'video' %}
+                    <i class="fas fa-video fa-3x text-secondary"></i><br>Video File
+                    {% else %}
+                    <i class="fas fa-file fa-3x text-secondary"></i><br>Other File
+                    {% endif %}
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title text-truncate">{{ media_item.title }}</h5>
+                    <p class="card-text text-muted flex-grow-1">{{ media_item.description | truncate(70) }}</p>
+                    <p class="card-text"><small class="text-muted">Tags: {{ media_item.tags | default('N/A') }}</small></p>
+                    <p class="card-text"><small class="text-muted">Category: {{ media_item.category | default('N/A') }}</small></p>
+                    <p class="card-text"><small class="text-muted">Subcategory: {{ media_item.subcategory | default('N/A') }}</small></p>
+                    <div class="btn-group mt-auto" role="group">
+                        <a href="/media/{{ media_item.id }}" class="btn btn-sm btn-secondary">View</a>
+                        <a href="/media/{{ media_item.id }}/edit" class="btn btn-sm btn-warning">Edit</a>
+                        <form action="/media/{{ media_item.id }}/delete" method="post" style="display: inline-block;">
+                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-    {% endfor %}
-</div>
-
-<nav aria-label="Page navigation">
-    <ul class="pagination justify-content-center">
-        {% set total_pages = (total_media / per_page)|round(0, 'ceil')|int %}
-        {% if page > 1 %}
-        <li class="page-item"><a class="page-link" href="{{ url_for('index', page=page-1, tags=request.args.get('tags', ''), type=request.args.get('type', '')) }}">Previous</a></li>
-        {% endif %}
-        {% for p in range(1, total_pages + 1) %}
-        <li class="page-item {% if p == page %}active{% endif %}"><a class="page-link" href="{{ url_for('index', page=p, tags=request.args.get('tags', ''), type=request.args.get('type', '')) }}">{{ p }}</a></li>
         {% endfor %}
-        {% if page < total_pages %}
-        <li class="page-item"><a class="page-link" href="{{ url_for('index', page=page+1, tags=request.args.get('tags', ''), type=request.args.get('type', '')) }}">Next</a></li>
-        {% endif %}
-    </ul>
-</nav>
+    </div>
+
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center flex-wrap"> {# Added flex-wrap for responsiveness #}
+            {% set total_pages = (total_media / per_page)|round(0, 'ceil')|int %}
+            {% set current_page = page %}
+            {% set pagination_range = 2 %} {# Number of pages to show around current page #}
+
+            {# Previous button #}
+            {% if current_page > 1 %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('index', page=current_page-1, tags=request.args.get('tags', ''), type=request.args.get('type', ''), category=request.args.get('category', ''), subcategory=request.args.get('subcategory', '')) }}">Previous</a></li>
+            {% endif %}
+
+            {# First page #}
+            {% if current_page - pagination_range > 1 %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('index', page=1, tags=request.args.get('tags', ''), type=request.args.get('type', ''), category=request.args.get('category', ''), subcategory=request.args.get('subcategory', '')) }}">1</a></li>
+            {% if current_page - pagination_range > 2 %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+            {% endif %}
+
+            {# Pages in range #}
+            {% set start_page = current_page - pagination_range %}
+{% if start_page < 1 %}
+    {% set start_page = 1 %}
+{% endif %}
+
+{% set end_page = current_page + pagination_range %}
+{% if end_page > total_pages %}
+    {% set end_page = total_pages %}
+{% endif %}
+
+{% for p in range(start_page, end_page + 1) %}
+            <li class="page-item {% if p == current_page %}active{% endif %}"><a class="page-link" href="{{ url_for('index', page=p, tags=request.args.get('tags', ''), type=request.args.get('type', ''), category=request.args.get('category', ''), subcategory=request.args.get('subcategory', '')) }}">{{ p }}</a></li>
+            {% endfor %}
+
+            {# Last page #}
+            {% if current_page + pagination_range < total_pages %}
+            {% if current_page + pagination_range < total_pages - 1 %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('index', page=total_pages, tags=request.args.get('tags', ''), type=request.args.get('type', ''), category=request.args.get('category', ''), subcategory=request.args.get('subcategory', '')) }}">{{ total_pages }}</a></li>
+            {% endif %}
+
+            {# Next button #}
+            {% if current_page < total_pages %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('index', page=current_page+1, tags=request.args.get('tags', ''), type=request.args.get('type', ''), category=request.args.get('category', ''), subcategory=request.args.get('subcategory', '')) }}">Next</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
 
 {% include 'footer.html' %}

@@ -1,45 +1,58 @@
-
 {% include 'header.html' %}
-<h1 class="mt-5">Edit Media</h1>
-<form action="/media/{{ media_item.id }}/edit" method="post">
-    <div class="form-group">
-        <label for="title">Title</label>
-        <input type="text" name="title" id="title" class="form-control" value="{{ media_item.title }}" required>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header text-center">
+                    <h2 class="card-title mb-0">Edit Media</h2>
+                </div>
+                <div class="card-body">
+                    <form action="/media/{{ media_item.id }}/edit" method="post">
+                        <div class="form-group">
+                            <label for="title">Title</label>
+                            <input type="text" name="title" id="title" class="form-control" value="{{ media_item.title }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <textarea name="description" id="description" class="form-control">{{ media_item.description }}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="tags">Tags (comma-separated)</label>
+                            <input type="text" name="tags" id="tags" class="form-control" value="{{ media_item.tags }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="category">Category</label>
+                            <select name="category" id="category" class="form-control">
+                                <option value="">Select Category</option>
+                                <option value="image" {% if media_item.category == 'image' %}selected{% endif %}>Image</option>
+                                <option value="audio" {% if media_item.category == 'audio' %}selected{% endif %}>Audio</option>
+                                <option value="video" {% if media_item.category == 'video' %}selected{% endif %}>Video</option>
+                                <option value="ebook" {% if media_item.category == 'ebook' %}selected{% endif %}>Ebook</option>
+                                <option value="other" {% if media_item.category == 'other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="subcategory">Subcategory</label>
+                            <select name="subcategory" id="subcategory" class="form-control">
+                                <option value="">Select Subcategory</option>
+                                <option value="songs" {% if media_item.subcategory == 'songs' %}selected{% endif %}>Songs</option>
+                                <option value="movies" {% if media_item.subcategory == 'movies' %}selected{% endif %}>Movies</option>
+                                <option value="short_clip" {% if media_item.subcategory == 'short_clip' %}selected{% endif %}>Short Clip</option>
+                                <option value="music" {% if media_item.subcategory == 'music' %}selected{% endif %}>Music</option>
+                                <option value="study" {% if media_item.subcategory == 'study' %}selected{% endif %}>Study</option>
+                                <option value="reference" {% if media_item.subcategory == 'reference' %}selected{% endif %}>Reference</option>
+                                <option value="fiction" {% if media_item.subcategory == 'fiction' %}selected{% endif %}>Fiction</option>
+                                <option value="non_fiction" {% if media_item.subcategory == 'non_fiction' %}selected{% endif %}>Non-Fiction</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-block mt-3">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="form-group">
-        <label for="description">Description</label>
-        <textarea name="description" id="description" class="form-control">{{ media_item.description }}</textarea>
-    </div>
-    <div class="form-group">
-        <label for="tags">Tags (comma-separated)</label>
-        <input type="text" name="tags" id="tags" class="form-control" value="{{ media_item.tags }}">
-    </div>
-    <div class="form-group">
-        <label for="category">Category</label>
-        <select name="category" id="category" class="form-control">
-            <option value="">Select Category</option>
-            <option value="image" {% if media_item.category == 'image' %}selected{% endif %}>Image</option>
-            <option value="audio" {% if media_item.category == 'audio' %}selected{% endif %}>Audio</option>
-            <option value="video" {% if media_item.category == 'video' %}selected{% endif %}>Video</option>
-            <option value="ebook" {% if media_item.category == 'ebook' %}selected{% endif %}>Ebook</option>
-            <option value="other" {% if media_item.category == 'other' %}selected{% endif %}>Other</option>
-        </select>
-    </div>
-    <div class="form-group">
-        <label for="subcategory">Subcategory</label>
-        <select name="subcategory" id="subcategory" class="form-control">
-            <option value="">Select Subcategory</option>
-            <option value="songs" {% if media_item.subcategory == 'songs' %}selected{% endif %}>Songs</option>
-            <option value="movies" {% if media_item.subcategory == 'movies' %}selected{% endif %}>Movies</option>
-            <option value="short_clip" {% if media_item.subcategory == 'short_clip' %}selected{% endif %}>Short Clip</option>
-            <option value="music" {% if media_item.subcategory == 'music' %}selected{% endif %}>Music</option>
-            <option value="study" {% if media_item.subcategory == 'study' %}selected{% endif %}>Study</option>
-            <option value="reference" {% if media_item.subcategory == 'reference' %}selected{% endif %}>Reference</option>
-            <option value="fiction" {% if media_item.subcategory == 'fiction' %}selected{% endif %}>Fiction</option>
-            <option value="non_fiction" {% if media_item.subcategory == 'non_fiction' %}selected{% endif %}>Non-Fiction</option>
-        </select>
-    </div>
-    
-    <button type="submit" class="btn btn-primary">Save Changes</button>
-</form>
+</div>
+
 {% include 'footer.html' %}

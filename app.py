@@ -109,30 +109,49 @@ def index():
 @login_required
 def upload_form():
     if request.method == 'POST':
-        # Check if the post request has the file part
+        title = request.form.get('title', '').strip()
+        description = request.form.get('description', '').strip()
+        tags = request.form.get('tags', '').strip()
+        category = request.form.get('category', '').strip()
+        subcategory = request.form.get('subcategory', '').strip()
+
+        # File validation
         if 'file' not in request.files:
             flash('No file part', 'danger')
             return redirect(request.url)
         file = request.files['file']
-        # If the user does not select a file, the browser submits an
-        # empty file without a filename.
         if file.filename == '':
             flash('No selected file', 'danger')
             return redirect(request.url)
+        if not allowed_file(file.filename):
+            flash('File type not allowed', 'danger')
+            return redirect(request.url)
 
-        if file and allowed_file(file.filename):
-            original_filename = secure_filename(file.filename)
-            file_extension = os.path.splitext(original_filename)[1].lower()
-            new_filename = f"{uuid.uuid4().hex}{file_extension}"
-            file_path = os.path.join(app.config['MEDIA_DIR'], new_filename)
+        # Form field validation
+        if not title:
+            flash("Title is required.", "danger")
+            return redirect(request.url)
+
+        # Validate category and subcategory if provided
+        valid_categories = ['image', 'audio', 'video', 'ebook', 'other', '']
+        if category and category not in valid_categories:
+            flash("Invalid category selected.", "danger")
+            return redirect(request.url)
+
+        valid_subcategories = ['songs', 'movies', 'short_clip', 'music', 'study', 'reference', 'fiction', 'non_fiction', '']
+        if subcategory and subcategory not in valid_subcategories:
+            flash("Invalid subcategory selected.", "danger")
+            return redirect(request.url)
+
+        original_filename = secure_filename(file.filename)
+        file_extension = os.path.splitext(original_filename)[1].lower()
+        new_filename = f"{uuid.uuid4().hex}{file_extension}"
+        file_path = os.path.join(app.config['MEDIA_DIR'], new_filename)
+
+        try:
             file.save(file_path)
 
-            title = request.form.get('title', original_filename)
-            description = request.form.get('description')
-            tags = request.form.get('tags')
             file_type = get_file_type(original_filename)
-            category = request.form.get('category', file_type)
-            subcategory = request.form.get('subcategory', '')
 
             new_media = Media(
                 title=title,
@@ -140,7 +159,7 @@ def upload_form():
                 tags=tags,
                 filename=new_filename,
                 file_type=file_type,
-                category=category,
+                category=category or file_type, # Use file_type as default category
                 subcategory=subcategory,
                 user_id=current_user.id
             )
@@ -148,8 +167,12 @@ def upload_form():
             db.session.commit()
             flash('Media uploaded successfully!', 'success')
             return redirect(url_for('media_page', media_id=new_media.id))
-        else:
-            flash('File type not allowed', 'danger')
+        except Exception as e:
+            app.logger.error(f"Error uploading media: {e}")
+            flash("Failed to upload media.", "danger")
+            # Clean up partially uploaded file if any
+            if os.path.exists(file_path):
+                os.remove(file_path)
             return redirect(request.url)
 
     return render_template('upload.html')
@@ -177,8 +200,18 @@ def edit_media(media_id):
         subcategory = request.form.get('subcategory', '').strip()
 
         if not title:
-            app.logger.warning(f"Edit attempt for media ID {media_id} with missing title.")
             flash("Title is required.", "danger")
+            return render_template('edit.html', media_item=media_item)
+
+        # Validate category and subcategory if provided
+        valid_categories = ['image', 'audio', 'video', 'ebook', 'other', '']
+        if category and category not in valid_categories:
+            flash("Invalid category selected.", "danger")
+            return render_template('edit.html', media_item=media_item)
+
+        valid_subcategories = ['songs', 'movies', 'short_clip', 'music', 'study', 'reference', 'fiction', 'non_fiction', '']
+        if subcategory and subcategory not in valid_subcategories:
+            flash("Invalid subcategory selected.", "danger")
             return render_template('edit.html', media_item=media_item)
 
         try:
@@ -188,7 +221,6 @@ def edit_media(media_id):
             media_item.category = category
             media_item.subcategory = subcategory
             db.session.commit()
-            app.logger.info(f"Media item ID {media_id} updated successfully by user {current_user.username}.")
             flash("Media updated successfully!", "success")
         except Exception as e:
             app.logger.error(f"Error updating media ID {media_id}: {e}")
@@ -264,8 +296,13 @@ def create_playlist():
         description = request.form.get('description', '').strip()
         playlist_type = request.form.get('playlist_type', '').strip()
 
-        if not name or not playlist_type:
-            flash("Name and Playlist Type are required.", "danger")
+        if not name:
+            flash("Playlist Name is required.", "danger")
+            return render_template('create_playlist.html')
+
+        valid_playlist_types = ['audio', 'video', 'ebook', 'all', '']
+        if not playlist_type or playlist_type not in valid_playlist_types:
+            flash("Valid Playlist Type is required.", "danger")
             return render_template('create_playlist.html')
 
         try:
@@ -415,6 +452,10 @@ def perform_bulk_import(folder_path, default_title, default_description, default
     imported_count = 0
     skipped_count = 0
 
+    if not os.path.isdir(folder_path):
+        app.logger.error(f"Bulk import failed: Invalid folder path provided: {folder_path}")
+        return 0, 0 # Return 0,0 if folder path is invalid
+
     for root, _, files in os.walk(folder_path):
         for filename in files:
             file_full_path = os.path.join(root, filename)
@@ -468,15 +509,17 @@ def bulk_import():
             flash("Folder path is required.", "danger")
             return render_template('bulk_import.html')
 
-        if not os.path.isdir(folder_path):
-            flash("Invalid folder path. Please provide a valid directory.", "danger")
-            return render_template('bulk_import.html')
-
+        # The os.path.isdir check is now inside perform_bulk_import
         imported_count, skipped_count = perform_bulk_import(
             folder_path, default_title, default_description, default_tags, current_user.id
         )
 
-        flash(f"Bulk import complete. Imported {imported_count} files, skipped {skipped_count} duplicates/unsupported.", "success")
+        if imported_count == 0 and skipped_count == 0 and os.path.isdir(folder_path):
+            flash("No supported media files found in the specified folder, or an error occurred.", "warning")
+        elif imported_count == 0 and skipped_count == 0 and not os.path.isdir(folder_path):
+            flash("Invalid folder path. Please provide a valid directory.", "danger")
+        else:
+            flash(f"Bulk import complete. Imported {imported_count} files, skipped {skipped_count} duplicates/unsupported.", "success")
         return redirect(url_for('bulk_import'))
 
     return render_template('bulk_import.html')
@@ -503,8 +546,13 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
+
+        if not username or not password:
+            flash('Username and password are required.', 'danger')
+            return render_template('login.html')
+
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
             login_user(user)
@@ -557,6 +605,30 @@ def bookmarks():
 
     bookmarks = query.paginate(page=page, per_page=per_page, error_out=False)
     return render_template('bookmarks.html', form=form, bookmarks=bookmarks)
+
+@app.route('/about-us')
+def about_us():
+    return render_template('about_us.html')
+
+@app.route('/features')
+def features():
+    return render_template('features.html')
+
+@app.route('/pricing')
+def pricing():
+    return render_template('pricing.html')
+
+@app.route('/contact')
+def contact():
+    return render_template('contact.html')
+
+@app.route('/privacy-policy')
+def privacy_policy():
+    return render_template('privacy_policy.html')
+
+@app.route('/terms-of-service')
+def terms_of_service():
+    return render_template('terms_of_service.html')
 
 from api import api_bp
 app.register_blueprint(api_bp)

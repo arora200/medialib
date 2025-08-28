@@ -1,33 +1,45 @@
 {% include 'header.html' %}
-<h1 class="mt-5">Bulk Import Media</h1>
 
-<form action="{{ url_for('bulk_import') }}" method="post" id="bulk-import-form">
-    <div class="form-group">
-        <label for="folder_path">Bulk Folder Path</label>
-        <input type="text" name="folder_path" id="folder_path" class="form-control" placeholder="E.g., C:\Users\YourName\Pictures" required>
-        <small class="form-text text-muted">Enter the absolute path to the folder containing your media files.</small>
-    </div>
-    <div class="form-group">
-        <label for="default_title">Default Title (Optional)</label>
-        <input type="text" name="default_title" id="default_title" class="form-control" placeholder="Leave empty to use filename as title">
-        <small class="form-text text-muted">This title will be used for all imported media, unless left empty.</small>
-    </div>
-    <div class="form-group">
-        <label for="default_description">Default Description (Optional)</label>
-        <textarea name="default_description" id="default_description" class="form-control"></textarea>
-    </div>
-    <div class="form-group">
-        <label for="default_tags">Default Tags (Optional, comma-separated)</label>
-        <input type="text" name="default_tags" id="default_tags" class="form-control">
-    </div>
-    <button type="submit" class="btn btn-primary">Start Bulk Import</button>
-    <div id="loading-indicator" style="display:none; margin-top: 15px;">
-        <div class="spinner-border text-primary" role="status">
-            <span class="sr-only">Loading...</span>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header text-center">
+                    <h2 class="card-title mb-0">Bulk Import Media</h2>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('bulk_import') }}" method="post" id="bulk-import-form">
+                        <div class="form-group">
+                            <label for="folder_path">Bulk Folder Path</label>
+                            <input type="text" name="folder_path" id="folder_path" class="form-control" placeholder="E.g., C:\Users\YourName\Pictures" required>
+                            <small class="form-text text-muted">Enter the absolute path to the folder containing your media files.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="default_title">Default Title (Optional)</label>
+                            <input type="text" name="default_title" id="default_title" class="form-control" placeholder="Leave empty to use filename as title">
+                            <small class="form-text text-muted">This title will be used for all imported media, unless left empty.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="default_description">Default Description (Optional)</label>
+                            <textarea name="default_description" id="default_description" class="form-control"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="default_tags">Default Tags (Optional, comma-separated)</label>
+                            <input type="text" name="default_tags" id="default_tags" class="form-control">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block mt-3">Start Bulk Import</button>
+                        <div id="loading-indicator" class="text-center mt-3" style="display:none;">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                            <p class="mt-2 mb-0">Importing... Please wait.</p>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-        <span class="ml-2">Importing... Please wait.</span>
     </div>
-</form>
+</div>
 
 <script>
     document.getElementById('bulk-import-form').addEventListener('submit', function(event) {

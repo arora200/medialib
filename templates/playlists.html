@@ -1,24 +1,35 @@
 {% include 'header.html' %}
-<h1 class="mt-5">Playlists</h1>
-<div class="mb-3">
-    <a href="{{ url_for('create_playlist') }}" class="btn btn-primary">Create New Playlist</a>
-</div>
-<div class="row">
-    {% for playlist in playlists %}
-    <div class="col-md-4">
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="card-title">{{ playlist.name }}</h5>
-                <p class="card-text">{{ playlist.description }}</p>
-                <p class="card-text"><small class="text-muted">Type: {{ playlist.playlist_type }}</small></p>
-                <a href="{{ url_for('view_playlist', playlist_id=playlist.id) }}" class="btn btn-secondary">View Playlist</a>
-                <form action="{{ url_for('delete_playlist', playlist_id=playlist.id) }}" method="post" style="display: inline-block;">
-                    <input type="password" name="password" placeholder="Admin Password" required>
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </form>
+
+<div class="container mt-4 text-center">
+    <h2 class="mb-4">Playlists</h2>
+
+    <div class="mb-4">
+        <a href="{{ url_for('create_playlist') }}" class="btn btn-primary">Create New Playlist</a>
+    </div>
+
+    <div class="row justify-content-center">
+        {% for playlist in playlists %}
+        <div class="col-md-3 col-sm-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title text-truncate">{{ playlist.name }}</h5>
+                    <p class="card-text text-muted flex-grow-1">{{ playlist.description | default('N/A') }}</p>
+                    <p class="card-text"><small class="text-muted">Type: {{ playlist.playlist_type }}</small></p>
+                    <div class="mt-auto">
+                        <a href="{{ url_for('view_playlist', playlist_id=playlist.id) }}" class="btn btn-sm btn-secondary btn-block mb-2">View Playlist</a>
+                        <form action="{{ url_for('delete_playlist', playlist_id=playlist.id) }}" method="post">
+                            <button type="submit" class="btn btn-sm btn-danger btn-block">Delete</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
+        {% else %}
+        <div class="col-12">
+            <p class="text-center text-muted">No playlists found. Create one!</p>
+        </div>
+        {% endfor %}
     </div>
-    {% endfor %}
 </div>
+
 {% include 'footer.html' %}

@@ -1,56 +1,98 @@
 {% include 'header.html' %}
-<h1 class="mt-5">Playlist: {{ playlist.name }}</h1>
-<p>{{ playlist.description }}</p>
-<p><small class="text-muted">Type: {{ playlist.playlist_type }}</small></p>
 
-<h2 class="mt-4">Current Media Item</h2>
-<div id="current-media-viewer">
-    <!-- Media player/viewer will be loaded here by JavaScript -->
-</div>
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Playlist: {{ playlist.name }}</h2>
 
-<div class="mt-3">
-    <button id="prev-media" class="btn btn-secondary">Previous</button>
-    <button id="next-media" class="btn btn-secondary">Next</button>
-</div>
-
-<h2 class="mt-4">Media Items in Playlist</h2>
-{% if playlist_items %}
-<ul class="list-group" id="playlist-items">
-    {% for item in playlist_items %}
-    <li class="list-group-item d-flex justify-content-between align-items-center" data-id="{{ item.id }}" data-file-type="{{ item.file_type }}" data-filename="{{ item.filename }}" data-title="{{ item.title }}">
-        <div>
-            <a href="{{ url_for('media_page', media_id=item.id) }}">{{ item.title }}</a>
-            <small class="text-muted"> ({{ item.file_type }})</small>
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <p class="card-text"><strong>Description:</strong> {{ playlist.description | default('N/A') }}</p>
+                    <p class="card-text"><small class="text-muted">Type: {{ playlist.playlist_type }}</small></p>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{{ url_for('playlists') }}" class="btn btn-secondary">Back to Playlists</a>
+                </div>
+            </div>
         </div>
-        <form action="{{ url_for('remove_media_from_playlist', playlist_id=playlist.id) }}" method="post" style="display: inline-block;">
-            <input type="hidden" name="media_id" value="{{ item.id }}">
-            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
-        </form>
-    </li>
-    {% endfor %}
-</ul>
-<button id="save-order" class="btn btn-success mt-3">Save Order</button>
-{% else %}
-<p>No media items in this playlist yet.</p>
-{% endif %}
+    </div>
 
-<h2 class="mt-4">Add Media to Playlist</h2>
-<div class="form-group">
-    <input type="text" id="media-search-input" class="form-control" placeholder="Search media by title...">
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header text-center">
+                    <h3 class="card-title mb-0">Current Media Item</h3>
+                </div>
+                <div class="card-body text-center">
+                    <div id="current-media-viewer" class="mb-3">
+                        <!-- Media player/viewer will be loaded here by JavaScript -->
+                    </div>
+                    <div class="btn-group" role="group">
+                        <button id="prev-media" class="btn btn-secondary">Previous</button>
+                        <button id="next-media" class="btn btn-secondary">Next</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header text-center">
+                    <h3 class="card-title mb-0">Media Items in Playlist</h3>
+                </div>
+                <div class="card-body">
+                    {% if playlist_items %}
+                    <ul class="list-group list-group-flush" id="playlist-items">
+                        {% for item in playlist_items %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center" data-id="{{ item.media.id }}" data-file-type="{{ item.media.file_type }}" data-filename="{{ item.media.filename }}" data-title="{{ item.media.title }}">
+                            <div>
+                                <a href="{{ url_for('media_page', media_id=item.media.id) }}">{{ item.media.title }}</a>
+                                <small class="text-muted"> ({{ item.media.file_type }})</small>
+                            </div>
+                            <form action="{{ url_for('remove_media_from_playlist', playlist_id=playlist.id) }}" method="post" style="display: inline-block;">
+                                <input type="hidden" name="media_id" value="{{ item.media.id }}">
+                                <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                            </form>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <button id="save-order" class="btn btn-success mt-3 btn-block">Save Order</button>
+                    {% else %}
+                    <p class="text-center text-muted">No media items in this playlist yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header text-center">
+                    <h3 class="card-title mb-0">Add Media to Playlist</h3>
+                </div>
+                <div class="card-body">
+                    <div class="form-group mb-3">
+                        <input type="text" id="media-search-input" class="form-control" placeholder="Search media by title...">
+                    </div>
+                    <div id="media-search-results" class="list-group mb-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-<div id="media-search-results" class="list-group mb-3"></div>
-
-<a href="{{ url_for('playlists') }}" class="btn btn-secondary mt-3">Back to Playlists</a>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
 <script>
     var playlistItems = [];
     {% for item in playlist_items %}
         playlistItems.push({
-            id: {{ item.id }},
-            file_type: '{{ item.file_type }}',
-            filename: '{{ item.filename }}',
-            title: '{{ item.title }}'
+            id: {{ item.media.id }},
+            file_type: '{{ item.media.file_type }}',
+            filename: '{{ item.media.filename }}',
+            title: '{{ item.media.title }}'
         });
     {% endfor %}
 
