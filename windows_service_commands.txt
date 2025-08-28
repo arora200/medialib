@@ -1,0 +1,15 @@
+Commands for running Medialib as a Windows Service
+
+Note: These commands must be run from a Command Prompt with administrator privileges.
+
+1. Install the service:
+python media_service.py install
+
+2. Start the service:
+python media_service.py start
+
+3. Stop the service:
+python media_service.py stop
+
+4. Remove the service:
+python media_service.py remove
