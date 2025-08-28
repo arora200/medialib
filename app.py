@@ -44,7 +44,7 @@ os.makedirs(MEDIA_DIR, exist_ok=True)
 # --- Database Initialization ---
 def init_db():
     with app.app_context():
-        db.create_all()
+        # db.create_all() # Removed as Alembic will manage the schema
         # Create an admin user if one doesn't exist
         if not User.query.filter_by(username=ADMIN_USERNAME).first():
             admin_user = User(username=ADMIN_USERNAME)

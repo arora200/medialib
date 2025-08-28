@@ -300,3 +300,5 @@ zstandard==0.24.0
 pytest
 pytest-flask
 pytest-cov
+alembic
+pytest-html

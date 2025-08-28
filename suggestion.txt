@@ -1,0 +1,17 @@
+Technical Improvement Suggestions for Medialib Application:
+
+1.  **Database Migrations (Alembic):**
+    *   **Why:** Manual schema changes are problematic for production, leading to data loss. Alembic provides version-controlled, safe schema updates.
+    *   **Benefit:** Essential for production deployments and collaborative development, ensuring data integrity during updates.
+
+2.  **Structured Configuration Management:**
+    *   **Why:** Hardcoded or directly pulled environment variables, especially a weak `SECRET_KEY`, pose security risks and limit flexibility.
+    *   **Benefit:** Improves security (e.g., secure `SECRET_KEY`), allows for easy management of different environments (dev, test, prod), and enhances maintainability.
+
+3.  **Asynchronous Task Processing for Media Operations:**
+    *   **Why:** Synchronous operations like large file uploads or bulk imports block the web server, causing unresponsiveness.
+    *   **Benefit:** Dramatically improves application responsiveness and user experience by offloading long-running tasks to a background queue (e.g., Celery), preventing timeouts and enabling scalability.
+
+4.  **Comprehensive Testing:**
+    *   **Why:** While tests exist, ensuring high coverage is crucial for stability and preventing regressions.
+    *   **Benefit:** Catches bugs early, ensures code quality, and facilitates safe refactoring and continuous integration (e.g., via GitHub Actions).
