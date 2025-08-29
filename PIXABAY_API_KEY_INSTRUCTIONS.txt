@@ -1,0 +1,18 @@
+To get a Pixabay API key:
+
+1.  Go to the Pixabay API page: `https://pixabay.com/api/docs/`
+2.  Sign up for a free account if you don't have one.
+3.  Once logged in, your API key will be displayed on the API documentation page.
+
+**To save your Pixabay API key:**
+
+1.  Create a file named `.env` in your project's root directory (`E:\AppDevelopment\medialib\`).
+2.  Add the following line to the `.env` file, replacing `your_pixabay_api_key` with the actual key you obtained:
+
+    ```
+    PIXABAY_API_KEY=your_pixabay_api_key
+    ```
+
+3.  Save the `.env` file.
+
+The Python script will then be able to read this key from your environment.

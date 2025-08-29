@@ -1,0 +1,29 @@
+[
+    {
+        "timestamp": "2025-08-29T16:48:15.453362",
+        "keywords_searched": [
+            "girl",
+            "award",
+            "homework"
+        ],
+        "api_base_url": "http://localhost:5000/api",
+        "output_short_filename": "youtube_short_girl_award_homework.mp4",
+        "total_duration_seconds": 55.3,
+        "videos_included": [
+            {
+                "media_id": 3,
+                "title": "Awards",
+                "original_filename": "821937923d24423aa5126b3cf02b8982.mp4",
+                "tags": "Awards,Puneet Arora",
+                "duration_used_in_short": 49.9
+            },
+            {
+                "media_id": 277,
+                "title": "Doing School Homework",
+                "original_filename": "b61a4208f91f405cbf05d9126c192b58.mp4",
+                "tags": "School ,Homework, Girl ,Letter, Writing",
+                "duration_used_in_short": 5.4
+            }
+        ]
+    }
+]
