@@ -6,7 +6,8 @@ from dotenv import load_dotenv
 from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import Base, Media, db # Assuming db is already initialized in models.py
+from flask import Flask
+from models import db, Media # Import db and Media from models.py
 from utils import allowed_file, get_file_type # Re-using utility functions
 
 # Load environment variables from .env file
@@ -23,13 +24,11 @@ LOG_FILE = "pixabay_downloads_log.json"
 # Ensure media directory exists
 os.makedirs(MEDIA_DIR, exist_ok=True)
 
-# --- Database Setup (for this script's independent use) ---
-# This part ensures the script can interact with the database directly
-# without running the full Flask app. If the Flask app is always running
-# when this script is used, some of this might be redundant.
-engine = create_engine(f'sqlite:///{DB_PATH}')
-Base.metadata.bind = engine
-DB_Session = sessionmaker(bind=engine)
+# --- Minimal Flask App Setup for Database Interaction ---
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_PATH}'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
 
 # --- Pixabay API Interaction ---
 
@@ -120,7 +119,6 @@ def download_pixabay_video(video_url, filename):
 
 def create_db_entry(video_metadata):
     """Creates a new entry in the SQLite database for the downloaded video."""
-    session = DB_Session()
     try:
         new_media = Media(
             title=video_metadata['title'],
@@ -132,16 +130,14 @@ def create_db_entry(video_metadata):
             subcategory=video_metadata['subcategory'],
             user_id=video_metadata['user_id']
         )
-        session.add(new_media)
-        session.commit()
+        db.session.add(new_media)
+        db.session.commit()
         print(f"Created DB entry for '{new_media.title}' (ID: {new_media.id}).")
         return new_media.id
     except Exception as e:
-        session.rollback()
+        db.session.rollback()
         print(f"Error creating DB entry for '{video_metadata['title']}': {e}")
         return None
-    finally:
-        session.close()
 
 def record_pixabay_download(log_data):
     """Appends a JSON record of the Pixabay download to the log file."""
@@ -166,51 +162,47 @@ def record_pixabay_download(log_data):
 # --- Main Execution ---
 
 if __name__ == "__main__":
-    # Ensure the database schema is created if it doesn't exist
-    # This is important if running this script independently of app.py's init_db
-    # from models import Base # Import Base from models.py
-    # Base.metadata.create_all(engine) # Create tables if they don't exist
+    with app.app_context():
+        # User input for keywords
+        # keywords_input = input("Enter keywords to search for on Pixabay (comma-separated, e.g., 'nature,city'): ")
+        # query_keywords = [k.strip() for k in keywords_input.split(',') if k.strip()]
+        query_keywords = ['girl', 'award', 'homework'] # Default keywords for automated testing
 
-    # User input for keywords
-    # keywords_input = input("Enter keywords to search for on Pixabay (comma-separated, e.g., 'nature,city'): ")
-    # query_keywords = [k.strip() for k in keywords_input.split(',') if k.strip()]
-    query_keywords = ['girl', 'award', 'homework'] # Default keywords for automated testing
+        if not query_keywords:
+            print("No keywords provided. Exiting.")
+            exit()
 
-    if not query_keywords:
-        print("No keywords provided. Exiting.")
-        exit()
+        # 1. Get videos from Pixabay
+        found_videos_meta = get_pixabay_videos(query_keywords)
 
-    # 1. Get videos from Pixabay
-    found_videos_meta = get_pixabay_videos(query_keywords)
+        if not found_videos_meta:
+            print("No videos found on Pixabay matching your criteria.")
+            exit()
 
-    if not found_videos_meta:
-        print("No videos found on Pixabay matching your criteria.")
-        exit()
+        download_count = 0
+        for video_meta in found_videos_meta:
+            downloaded_path = download_pixabay_video(video_meta['pixabay_video_url'], video_meta['filename'])
+            if downloaded_path:
+                video_meta['local_path'] = downloaded_path
+                db_id = create_db_entry(video_meta)
+                if db_id:
+                    video_meta['db_id'] = db_id
+                    download_count += 1
+                    
+                    # Record the download in the log
+                    log_entry = {
+                        "timestamp": datetime.now().isoformat(),
+                        "keywords_searched": query_keywords,
+                        "pixabay_video_id": video_meta['pixabay_id'],
+                        "downloaded_filename": video_meta['filename'],
+                        "title": video_meta['title'],
+                        "tags": video_meta['tags'],
+                        "api_base_url": PIXABAY_BASE_URL, # Log the API used
+                        "local_db_id": db_id
+                    }
+                    record_pixabay_download(log_entry)
 
-    download_count = 0
-    for video_meta in found_videos_meta:
-        downloaded_path = download_pixabay_video(video_meta['pixabay_video_url'], video_meta['filename'])
-        if downloaded_path:
-            video_meta['local_path'] = downloaded_path
-            db_id = create_db_entry(video_meta)
-            if db_id:
-                video_meta['db_id'] = db_id
-                download_count += 1
-                
-                # Record the download in the log
-                log_entry = {
-                    "timestamp": datetime.now().isoformat(),
-                    "keywords_searched": query_keywords,
-                    "pixabay_video_id": video_meta['pixabay_id'],
-                    "downloaded_filename": video_meta['filename'],
-                    "title": video_meta['title'],
-                    "tags": video_meta['tags'],
-                    "api_base_url": PIXABAY_BASE_URL, # Log the API used
-                    "local_db_id": db_id
-                }
-                record_pixabay_download(log_entry)
-
-    if download_count > 0:
-        print(f"Successfully downloaded and recorded {download_count} videos from Pixabay.")
-    else:
-        print("No new videos were downloaded and recorded from Pixabay.")
+        if download_count > 0:
+            print(f"Successfully downloaded and recorded {download_count} videos from Pixabay.")
+        else:
+            print("No new videos were downloaded and recorded from Pixabay.")
